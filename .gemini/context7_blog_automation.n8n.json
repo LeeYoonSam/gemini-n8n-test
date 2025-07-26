@@ -1,0 +1,90 @@
+{
+  "name": "Context7 Blog Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "blog-post-request-gemini",
+        "httpMethod": "POST",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "prompt": "다음 키워드에 대한 전문적인 블로그 글을 작성해줘: {{ $json.body.keyword }}. 독자의 흥미를 끌 수 있도록 서론, 본론, 결론 형식으로 구성해줘. SEO에 최적화된 제목도 제안해줘. 결과는 반드시 다음과 같은 JSON 형식으로 반환해줘: {\"title\": \"여기에 제목\", \"content\": \"여기에 블로그 본문\"}",
+        "model": "gemini-pro",
+        "toolMode": "useTools",
+        "tools": [
+          "n8n-nodes-mcp.context7"
+        ],
+        "options": {
+           "responseFormat": "json_object"
+        }
+      },
+      "name": "AI Agent (Blog Writer)",
+      "type": "n8n-nodes-base.aiAgent",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "blogTitle",
+              "value": "={{ JSON.parse($json.output).title }}"
+            },
+            {
+              "name": "blogContent",
+              "value": "={{ JSON.parse($json.output).content }}"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": true
+        }
+      },
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (Blog Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Blog Writer)": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}
